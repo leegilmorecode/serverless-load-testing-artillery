@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Example load testing serverless apps using Artillery.io against the following architecture which is discussed in the following [blog post](/):
+Example load testing serverless apps using Artillery.io against the following architecture which is discussed in the following [blog post](https://leejamesgilmore.medium.com/serverless-load-testing-at-scale-with-artillery-53ef6c8b77f7):
 
 ![image](./docs/images/employees-load-test.png)
 
