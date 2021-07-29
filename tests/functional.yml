@@ -1,0 +1,76 @@
+config:
+  plugins:
+    expect: {} # this plugin allows for assertions: https://artillery.io/docs/guides/plugins/plugin-expectations-assertions.html
+    fuzzer: {} # this plugin allows for fuzzing: https://artillery.io/docs/guides/plugins/plugin-fuzzer.html
+  ensure:
+    maxErrorRate: 0 # no percentage of error rate i.e. no errors or pipeline fails
+  payload:
+    path: "./data/data.csv" # pull in the employee data csv
+    fields:
+      - "id"
+      - "firstName"
+      - "surname"
+      - "age"
+    order: random # this can be random or sequence
+    skipHeader: true # skip header as this has the column headers
+    delimeter: ","
+    cast: true
+    skipEmptyLines: true
+  environments:
+    # functional testing below
+    develop:
+      target: "https://qyadeekob5.execute-api.eu-west-1.amazonaws.com/develop" # in reality these would be your domain name targets
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 1
+scenarios:
+  - flow:
+      # create the employee with a missing id and assert the response as a 400
+      - post:
+          url: "/employees"
+          json:
+            firstName: "{{ firstName }}"
+            surname: "{{ surname }}"
+            age: "{{ age }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 400
+            - contentType: application/json
+            - hasHeader: "content-type"
+            - equals:
+                - "{{ message }}"
+                - "Invalid: data must NOT have fewer than 4 items, data must have required property 'id'"
+      # create the employee with a bad firstname (fuzzing) and assert the response
+      - post:
+          url: "/employees"
+          json:
+            id: "{{ id }}"
+            firstName: "{{ naughtyString }}"
+            surname: "{{ surname }}"
+            age: "{{ age }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 400
+            - contentType: application/json
+            - hasHeader: "content-type"
+            - equals:
+                - "{{ message }}"
+                - 'Invalid: data/firstName must match pattern "^[a-zA-Z]+$"'
+      # get an employee with an id which is not a number and assert the response
+      - get:
+          url: "/employees/xxx"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 400
+            - contentType: application/json
+            - hasHeader: "content-type"
+            - equals:
+                - "{{ message }}"
+                - "Invalid: data/id must be number"

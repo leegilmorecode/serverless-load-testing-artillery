@@ -1,3 +1,11 @@
+# artillery
+tests/data/reports/**/*.txt
+tests/data/reports/**/*.html
+tests/data/results/**/*.json
+
+# apple
+.DS_Store
+
 # Logs
 logs
 *.log

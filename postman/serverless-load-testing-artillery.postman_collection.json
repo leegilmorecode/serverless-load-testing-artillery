@@ -1,0 +1,50 @@
+{
+  "info": {
+    "_postman_id": "2949931f-5bd7-4d94-a2a9-c1ab9d4f8c7e",
+    "name": "serverless-load-testing-artillery",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Employee",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"id\": 1,\n    \"firstName\": \"Tom\",\n    \"surname\": \"Smith\",\n    \"age\": 25\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{url}}/employees",
+          "host": ["{{url}}"],
+          "path": ["employees"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Employee by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{url}}/employees/1",
+          "host": ["{{url}}"],
+          "path": ["employees", "1"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "url",
+      "value": "https://qyadeekob5.execute-api.eu-west-1.amazonaws.com/develop"
+    }
+  ]
+}

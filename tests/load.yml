@@ -1,0 +1,86 @@
+config:
+  plugins:
+    expect: {} # this plugin allows for assertions: https://artillery.io/docs/guides/plugins/plugin-expectations-assertions.html
+  ensure:
+    p95: 1000 # ensure latency is equal to or under 1000ms
+    maxErrorRate: 0 # no percentage of error rate i.e. no errors or pipeline fails
+  payload:
+    path: "./data/data.csv" # pull in the employee data csv
+    fields:
+      - "id"
+      - "firstName"
+      - "surname"
+      - "age"
+    order: random # this can be random or sequence
+    skipHeader: true # skip header as this has the column headers
+    delimeter: ","
+    cast: true
+    skipEmptyLines: true
+  environments:
+    # smoke testing
+    smoke-develop:
+      target: "https://qyadeekob5.execute-api.eu-west-1.amazonaws.com/develop" # in reality these would be your domain name targets
+      phases:
+        - duration: 1 # duration of the load test scenario
+          arrivalRate: 1 # one active user x seconds in duration
+          maxVusers: 1 # max number of virtual users to be created
+    # load testing below
+    develop:
+      target: "https://qyadeekob5.execute-api.eu-west-1.amazonaws.com/develop" # in reality these would be your domain name targets
+      phases:
+        - duration: 10
+          arrivalRate: 1
+          maxVusers: 1
+    qa:
+      target: "https://qa.something.co.uk/api" # in reality these would be your domain name targets
+      phases:
+        - duration: 60
+          arrivalRate: 10
+          maxVusers: 10
+    staging:
+      target: "https://stage.something.co.uk/api" # in reality these would be your domain name targets
+      phases:
+        - duration: 300
+          arrivalRate: 10
+          maxVusers: 50
+    production:
+      target: "https://something.co.uk/api" # in reality these would be your domain name targets
+      phases:
+        - duration: 300
+          arrivalRate: 10
+          maxVusers: 50
+scenarios:
+  - flow:
+      - log: "New virtual user running" # you can log using the following example
+      # create the employee and assert the response
+      - post:
+          url: "/employees"
+          json:
+            id: "{{ id }}"
+            firstName: "{{ firstName }}"
+            surname: "{{ surname }}"
+            age: "{{ age }}"
+          expect:
+            - statusCode: 201 # ensure the correct status code is returned
+            - contentType: application/json # ensure that the correct contentType is returned
+            - matchesRegexp: Created # ensure the created response is on the returned body
+            - hasHeader: "content-type" # ensure it has the correct headers returned
+      # get the employee which has just been created and assert the response
+      - get:
+          url: "/employees/{{ id }}"
+          capture:
+            - json: "$.fullName"
+              as: fullName
+          expect:
+            - statusCode: 200
+            - contentType: application/json
+            - hasHeader: "content-type"
+            - hasProperty: surname # ensure that all of the properties are present on the response
+            - hasProperty: firstName
+            - hasProperty: age
+            - hasProperty: id
+            - hasProperty: created
+            - hasProperty: fullName
+            - equals:
+                - "{{ fullName }}"
+                - "{{ firstName }} {{surname}}" # test to ensure that the fullname concat is working
